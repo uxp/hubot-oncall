@@ -1,14 +1,30 @@
 {
-  "name": "hubot-oncall",
-  "version": "0.1.0",
-  "description": "Automatically rotate your oncall schedule",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "hubot"
-  ],
-  "author": "",
-  "license": "ISC"
+    "name": "hubot-oncall",
+    "version": "0.1.0",
+    "description": "Automatically rotate your oncall schedule",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/uxp/hubot-oncall.git"
+    },
+    "author": {
+        "name": "Howard Logsdon",
+        "email": "howard@hplogsdon.com"
+    },
+    "dependencies": {
+        "moment": "^2.9.0"
+    },
+    "scripts": {
+        "test": "./script/test"
+    },
+    "keywords": [
+        "hubot"
+    ],
+    "devDependencies": {
+        "coffee-script": "^1.9.1",
+        "mocha": "~2.2.0",
+        "hubot-mock-adapter": "^1.0.0",
+        "hubot": "~2.11.2",
+        "sinon": "^1.14.1"
+    }
 }
