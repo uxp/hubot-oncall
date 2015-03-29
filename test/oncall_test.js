@@ -267,7 +267,37 @@ require('coffee-script/register');
 
         });
 
-        suite("", function() {
+        suite("relative date resolution", function() {
+
+            setup(function() {
+                robot = new Hubot(null, 'mock-adapter', false);
+
+                robot.adapter.on('connected', function() {
+                    sinon.spy(robot, "respond");
+                    sinon.spy(robot, "hear");
+                    require('../src/oncall')(robot);
+
+                    user = robot.brain.userForId('1', {
+                        name: 'user',
+                        room: '#test'
+                    });
+                });
+                robot.run();
+            });
+
+            teardown(function() {
+                robot.respond.restore();
+                robot.hear.restore();
+                robot.shutdown();
+            })
+
+            test("yesterday returns day - 1", function(done) {
+                robot.adapter.on('reply', function(envelope,strings) {
+                    assert(false);
+                    done();
+                });
+                robot.adapter.receive(new Message("hubot: foo"));
+            });
         });
 
     });
