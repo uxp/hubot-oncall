@@ -12,7 +12,7 @@ require('coffee-script/register');
         Message = require('hubot/src/message').TextMessage;
 
     suite("OnCall", function() {
-        var robot, user, adapter;
+        var robot, user;
 
         suite("responses", function() {
 
@@ -30,7 +30,6 @@ require('coffee-script/register');
                             name: 'user',
                             room: '#test'
                         });
-                        adapter = robot.adapter;
                     });
                     robot.run();
                 });
@@ -156,7 +155,6 @@ require('coffee-script/register');
                             name: 'user',
                             room: '#test'
                         });
-                        adapter = robot.adapter;
                     });
                     robot.run();
                 });

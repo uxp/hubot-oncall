@@ -52,18 +52,6 @@ module.exports = (function() {
             msg.finish();
         });
 
-        robot.respond(/oncall schedule/i, function(msg) {
-            console.log(JSON.stringify(msg.match));
-        });
-        robot.respond(/oncall del\s+(.*)/i, function(msg) {
-            console.log(JSON.stringify(msg.match));
-        });
-        robot.respond(/oncall add\s+(.*)/i, function(msg) {
-            console.log(JSON.stringify(msg.match));
-        });
-        robot.respond(/foo/i, function(msg) {
-            console.log(JSON.stringify(msg.match));
-        });
     }
 
 }).call(this);
