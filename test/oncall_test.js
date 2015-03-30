@@ -12,14 +12,24 @@ require('coffee-script/register');
         Message = require('hubot/src/message').TextMessage;
 
     suite("OnCall", function() {
-        var robot, user;
+        var robot, user, data = {};
 
         suite("responses", function() {
 
             suite("relative days:", function() {
 
                 setup(function() {
+                    data = {
+                        userorder: [
+                            { id: 1231210 },
+                            { id: 1231211 },
+                            { id: 1231212 },
+                            { id: 1231213 }
+                        ],
+                        current: 1231212
+                    };
                     robot = new Hubot(null, 'mock-adapter', false);
+                    robot.brain.set('oncall', data);
 
                     robot.adapter.on('connected', function() {
                         sinon.spy(robot, "respond");
@@ -144,7 +154,17 @@ require('coffee-script/register');
             suite("days of the week:", function() {
 
                 setup(function() {
+                    data = {
+                        userorder: [
+                            { id: 1231210 },
+                            { id: 1231211 },
+                            { id: 1231212 },
+                            { id: 1231213 }
+                        ],
+                        current: 1231212
+                    };
                     robot = new Hubot(null, 'mock-adapter', false);
+                    robot.brain.set('oncall', data);
 
                     robot.adapter.on('connected', function() {
                         sinon.spy(robot, "respond");
@@ -270,17 +290,28 @@ require('coffee-script/register');
         suite("relative date resolution", function() {
 
             setup(function() {
+                user = [];
+                data = {
+                    userorder: [
+                        { id: 1231210 },  // user1
+                        { id: 1231211 },  // user2
+                        { id: 1231212 },  // user3
+                        { id: 1231213 }   // user4
+                    ],
+                    current: 1231212      // user3
+                };
                 robot = new Hubot(null, 'mock-adapter', false);
+                robot.brain.set('oncall', data);
 
                 robot.adapter.on('connected', function() {
                     sinon.spy(robot, "respond");
                     sinon.spy(robot, "hear");
                     require('../src/oncall')(robot);
 
-                    user = robot.brain.userForId('1', {
-                        name: 'user',
-                        room: '#test'
-                    });
+                    user.push( robot.brain.userForId(1231210, { name: 'user1', room: '#test' }) );
+                    user.push( robot.brain.userForId(1231211, { name: 'user2', room: '#test' }) );
+                    user.push( robot.brain.userForId(1231212, { name: 'user3', room: '#test' }) );
+                    user.push( robot.brain.userForId(1231213, { name: 'user4', room: '#test' }) );
                 });
                 robot.run();
             });
@@ -289,15 +320,32 @@ require('coffee-script/register');
                 robot.respond.restore();
                 robot.hear.restore();
                 robot.shutdown();
-            })
+            });
 
-            test("yesterday returns day - 1", function(done) {
+            test("yesterday returns previous day's user", function(done) {
                 robot.adapter.on('reply', function(envelope,strings) {
-                    assert(false);
+                    assert(/user2/.test(strings[0]));
                     done();
                 });
-                robot.adapter.receive(new Message("hubot: foo"));
+                robot.adapter.receive(new Message(user[0], "hubot: who was oncall yesterday?"));
             });
+
+            test("today returns current day's user", function(done) {
+                robot.adapter.on('reply', function(envelope,strings) {
+                    assert(/user3/.test(strings[0]));
+                    done();
+                });
+                robot.adapter.receive(new Message(user[0], "hubot: who is oncall?"));
+            });
+
+            test("yesterday returns previous day's user", function(done) {
+                robot.adapter.on('reply', function(envelope,strings) {
+                    assert(/user4/.test(strings[0]));
+                    done();
+                });
+                robot.adapter.receive(new Message(user[0], "hubot: who's oncall tomorrow?"));
+            });
+
         });
 
     });

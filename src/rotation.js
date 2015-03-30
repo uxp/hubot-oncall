@@ -6,11 +6,17 @@ module.exports = (function() {
      *
      * @constructor
      */
-    function Rotation() {
+    function Rotation(data) {
         this.head  = null;
         this.tail  = null;
         this.count = 0;
+        if (data) {
+            data.userorder.forEach(function(user,idx) {
+                this.append({data: user});
+            }, this);
+        }
     };
+
 
     /**
      * Adds a node to the list

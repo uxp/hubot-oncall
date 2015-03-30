@@ -9,7 +9,9 @@ module.exports = (function() {
         moment   = require('moment');
 
     return function(robot) {
-        var rotation = new Rotation(),
+        var userData = robot.brain.get('oncall'),
+            rotation = new Rotation(userData),
+            _current = userData.current || 0,
             whens = {
                 'yesterday': -1,
                 'today':      0,
@@ -23,6 +25,20 @@ module.exports = (function() {
                 'friday':     5,
                 'saturday':   6,
                 'sunday':     7
+            },
+            getCurrent = function() {
+                var node = rotation.head;
+                while (node.data.id !== _current) {
+                    node = node.next;
+                }
+
+                return node;
+            },
+            getPrev = function() {
+                return getCurrent().prev;
+            };
+            getNext = function() {
+                return getCurrent().next;
             };
 
         robot.respond(new RegExp("who((?:\')s?|(?:\\s)?(?:was|is))\\s+oncall(?:\\s)?(?:last|on)?(?:\\s+)?(" + Object.keys(days).join('|') + ")", 'i'), function(msg) {
@@ -48,7 +64,19 @@ module.exports = (function() {
             if (tense.length == 0 || tense === "'s") tense = 'is';
             if (when.length == 0) when = 'today';
 
-            msg.reply(who + " " + tense + " on call " + when);
+            switch (when) {
+                case 'yesterday':
+                    who = getPrev();
+                    break;
+                case 'today':
+                    who = getCurrent();
+                    break;
+                case 'tomorrow':
+                    who = getNext();
+                    break;
+            }
+
+            msg.reply(robot.brain.userForId(who.data.id).name + " " + tense + " on call " + when);
             msg.finish();
         });
 
