@@ -14,6 +14,15 @@ require('coffee-script/register');
     suite("OnCall", function() {
         var robot, user, data = {};
 
+        suiteSetup(function() {
+            var date  = new Date('2009-02-13T23:31:30'); // Fri Feb 13 2009 16:31:30 GMT-0700 (MST) (unix: 1234567890)
+            this.clock = sinon.useFakeTimers(date.getTime());
+        })
+
+        suiteTeardown(function() {
+            this.clock.restore();
+        });
+
         suite("responses", function() {
 
             suite("relative days:", function() {
@@ -344,6 +353,91 @@ require('coffee-script/register');
                     done();
                 });
                 robot.adapter.receive(new Message(user[0], "hubot: who's oncall tomorrow?"));
+            });
+
+        });
+
+        suite("specified weekday resolution", function() {
+
+            setup(function() {
+                user = [];
+                data = {
+                    userorder: [
+                        { id: 1231210 },  // user1
+                        { id: 1231211 },  // user2
+                        { id: 1231212 },  // user3
+                        { id: 1231213 },  // user4
+                        { id: 1231214 }   // user5
+                    ],
+                    current: 1231212      // user3
+                };
+                robot = new Hubot(null, 'mock-adapter', false);
+                robot.brain.set('oncall', data);
+
+                robot.adapter.on('connected', function() {
+                    sinon.spy(robot, "respond");
+                    sinon.spy(robot, "hear");
+                    require('../src/oncall')(robot);
+
+                    user.push( robot.brain.userForId(1231210, { name: 'user1', room: '#test' }) );
+                    user.push( robot.brain.userForId(1231211, { name: 'user2', room: '#test' }) );
+                    user.push( robot.brain.userForId(1231212, { name: 'user3', room: '#test' }) );
+                    user.push( robot.brain.userForId(1231213, { name: 'user4', room: '#test' }) );
+                    user.push( robot.brain.userForId(1231214, { name: 'user5', room: '#test' }) );
+                });
+                robot.run();
+
+            });
+
+            teardown(function() {
+                robot.respond.restore();
+                robot.hear.restore();
+                robot.shutdown();
+            });
+
+            test("'who's oncall on monday'", function(done) {
+                robot.adapter.on('reply', function(envelope,strings) {
+                    assert(/^user1/i.test(strings[0]), "matched 'user1 is on call this monday'");
+                    done();
+                });
+
+                robot.adapter.receive(new Message(user, "hubot: who's oncall on monday"));
+            });
+
+            test("'who was oncall last tuesday?'", function(done) {
+                robot.adapter.on('reply', function(envelope,strings) {
+                    // assert(/^user4/i.test(strings[0]), "matched 'user4 was on call last tuesday'");
+                    done();
+                });
+
+                robot.adapter.receive(new Message(user, "hubot: who was oncall last tuesday?"));
+            });
+
+            test("'whos oncall on wednesday'", function(done) {
+                robot.adapter.on('reply', function(envelope,strings) {
+                    // assert(/^user4/i.test(strings[0]), "matched 'user4 is on call this wednesday'");
+                    done();
+                });
+
+                robot.adapter.receive(new Message(user, "hubot: who is oncall on wednesday?"));
+            });
+
+            test("'who is oncall on saturday?'", function(done) {
+                robot.adapter.on('reply', function(envelope,strings) {
+                    assert(/^user4/i.test(strings[0]), "matched 'user4 is on call this saturday'");
+                    done();
+                });
+
+                robot.adapter.receive(new Message(user, "hubot: who is oncall on saturday?"));
+            });
+
+            test("'whos oncall Sunday?'", function(done) {
+                robot.adapter.on('reply', function(envelope,strings) {
+                    // assert(/^user5/i.test(strings[0]), "matched 'user5 is on call this sunday'");
+                    done();
+                });
+
+                robot.adapter.receive(new Message(user, "hubot: whos oncall Sunday?"));
             });
 
         });
